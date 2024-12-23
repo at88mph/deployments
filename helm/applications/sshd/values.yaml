@@ -42,6 +42,24 @@ image:
 ##   bindDN: "uid=binduser,ou=admin,dc=example,dc=org"
 ldap: {}
 
+## @param userSettings  A list of override user settings for static config in sshd_config.
+## Recommended settings are Match, ChrootDirectory, X11Forwarding, AllowTcpForwarding, PermitTTY, and ForceCommand.
+## @param userSettings.Match  The Match directive to use for the user settings.
+## @param userSettings.ChrootDirectory  The directory to chroot the user to.
+## @param userSettings.X11Forwarding  Whether to allow X11 forwarding.
+## @param userSettings.AllowTcpForwarding  Whether to allow TCP forwarding.
+## @param userSettings.PermitTTY  Whether to allow a TTY.
+## @param userSettings.ForceCommand  The command to force the user to run.
+## Example:
+## userSettings:
+##   Match: "User *"
+##   ChrootDirectory: ""
+##   X11Forwarding: "no"
+##   AllowTcpForwarding: "no"
+##   PermitTTY: "no"
+##   ForceCommand: "internal-sftp"
+userSettings: {}
+
 ## @param entryPoint  Name of the Traefik entrypoint to use.
 ## Example:
 ## entryPoint: sshd
