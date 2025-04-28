@@ -56,15 +56,16 @@ spec:
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.volumeMounts }}
           volumeMounts:
+          {{- with .Values.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
         - env: 
           - name: SKAHA_SESSIONS_HOSTNAME
             value: "{{ .Values.sessions.hostname | default .Values.hostname }}"
-      {{- with .Values.volumes }}
       volumes:
+      
+      {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
