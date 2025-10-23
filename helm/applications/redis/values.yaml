@@ -1,0 +1,33 @@
+# Redis image configuration
+image:
+  repository: redis
+  tag: "8.2.2-bookworm"
+  pullPolicy: IfNotPresent
+
+# Container settings
+redis:
+  port: 6379
+
+# Deployment settings
+replicaCount: 1
+
+# Resource requests/limits
+resources: {}
+# Example:
+# resources:
+#   requests:
+#     cpu: 100m
+#     memory: 128Mi
+#   limits:
+#     cpu: 200m
+#     memory: 256Mi
+
+# Service configuration
+service:
+  port: 6379
+
+# Container security context
+# containerSecurityContext:
+
+# Pod security context
+# podSecurityContext:

@@ -1,0 +1,7 @@
+apiVersion: v2
+name: redis
+description: A simple Helm chart for a single Redis instance inside the Science Platform
+type: application
+version: 1.0.0
+appVersion: "8.2.2"
+icon: https://www.canfar.net/css/images/logo.png

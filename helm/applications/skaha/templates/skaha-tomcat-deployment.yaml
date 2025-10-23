@@ -85,7 +85,7 @@ spec:
         - name: skaha.posixmapper.resourceid
           value: "{{ .Values.deployment.skaha.posixMapperResourceID }}"
         - name: REDIS_HOST
-          value: "{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.{{ .Values.kubernetesClusterDomain }}"
+          value: "redis-{{ .Release.Name }}.{{ .Release.Namespace }}.svc.{{ .Values.kubernetesClusterDomain }}"
         - name: REDIS_PORT
           value: "6379"
         - name: SKAHA_EXPERIMENTAL_FEATURE_GATES
