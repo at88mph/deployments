@@ -1,6 +1,6 @@
 # posixmapper
 
-![Version: 0.5.0](https://img.shields.io/badge/Version-0.5.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.3.2](https://img.shields.io/badge/AppVersion-0.3.2-informational?style=flat-square)
+![Version: 0.5.1](https://img.shields.io/badge/Version-0.5.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.3.3](https://img.shields.io/badge/AppVersion-0.3.3-informational?style=flat-square)
 
 A Helm chart to install the UID/GID POSIX Mapper
 
@@ -14,9 +14,11 @@ A Helm chart to install the UID/GID POSIX Mapper
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| deployment.cavern.registryURL | string | `""` | IVOA Registry locataion |
+| deployment.cavern.registryURLs | list | `[]` | Optional array of IVOA Registry locations for resiliency.  This will override (and eventually replace) the single registryURL option. |
 | deployment.hostname | string | `"example.org"` |  |
 | deployment.posixMapper.gmsID | string | `nil` |  |
-| deployment.posixMapper.image | string | `"images.opencadc.org/platform/posix-mapper:0.3.2"` |  |
+| deployment.posixMapper.image | string | `"images.opencadc.org/platform/posix-mapper:0.3.3"` |  |
 | deployment.posixMapper.imagePullPolicy | string | `"Always"` |  |
 | deployment.posixMapper.minGID | int | `900000` |  |
 | deployment.posixMapper.minUID | int | `10000` |  |

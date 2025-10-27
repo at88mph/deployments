@@ -1,6 +1,6 @@
 # cavern
 
-![Version: 0.7.1](https://img.shields.io/badge/Version-0.7.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.0](https://img.shields.io/badge/AppVersion-0.9.0-informational?style=flat-square)
+![Version: 0.8.0](https://img.shields.io/badge/Version-0.8.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.1](https://img.shields.io/badge/AppVersion-0.9.1-informational?style=flat-square)
 
 A Helm chart to install the VOSpace User Storage API (Cavern)
 
@@ -20,6 +20,8 @@ A Helm chart to install the VOSpace User Storage API (Cavern)
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| deployment.cavern.registryURL | string | `""` | IVOA Registry locataion |
+| deployment.cavern.registryURLs | list | `[]` | Optional array of IVOA Registry locations for resiliency.  This will override (and eventually replace) the single registryURL option. |
 | deployment.cavern.adminAPIKeys | object | `{}` |  |
 | deployment.cavern.allocations.defaultSizeGB | int | `10` |  |
 | deployment.cavern.allocations.parentFolders[0] | string | `"/home"` |  |
@@ -31,7 +33,7 @@ A Helm chart to install the VOSpace User Storage API (Cavern)
 | deployment.cavern.filesystem.rootOwner.uid | string | `nil` |  |
 | deployment.cavern.filesystem.rootOwner.username | string | `""` |  |
 | deployment.cavern.identityManagerClass | string | `"org.opencadc.auth.StandardIdentityManager"` |  |
-| deployment.cavern.image | string | `"images.opencadc.org/platform/cavern:0.9.0"` |  |
+| deployment.cavern.image | string | `"images.opencadc.org/platform/cavern:0.9.1"` |  |
 | deployment.cavern.imagePullPolicy | string | `"IfNotPresent"` |  |
 | deployment.cavern.resourceID | string | `"ivo://example.org/cavern"` |  |
 | deployment.cavern.resources.limits.cpu | string | `"500m"` |  |

@@ -1,4 +1,7 @@
-# CHANGELOG for POSIX Mapper (0.5.0)
+# CHANGELOG for POSIX Mapper (0.5.1)
+
+## 2025.10.27 (0.5.1)
+- Support multiple IVOA Registries for resiliency
 
 ## 2025.07.28 (0.5.0)
 ### 🚨 Breaking Changes

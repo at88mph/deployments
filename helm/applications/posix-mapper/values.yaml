@@ -19,9 +19,20 @@ replicaCount: 1
 deployment:
   hostname: example.org    # Change this!
   posixMapper:
-    image: images.opencadc.org/platform/posix-mapper:0.3.2
+    image: images.opencadc.org/platform/posix-mapper:0.3.3
     imagePullPolicy: Always
     resourceID: ivo://opencadc.org/posix-mapper
+
+    # Set the Registry URL pointing to the desired registry (https:// URL)
+    registryURL:
+
+    # Optional array of registry URLs for resiliency.  This will override (and one day replace) the single registryURL option.
+    #
+    # Example:
+    # registryURLs:
+    #   - https://registry1.example.org/reg
+    #   - https://registry2.example.org/reg
+    registryURLs: []
 
     # URI or URL of the OIDC (IAM) server.  Used to validate incoming tokens.
     # oidcURI: https://iam.example.org
@@ -54,10 +65,6 @@ deployment:
 
     minUID: 10000
     minGID: 900000
-
-    # The IVOA Registry location.
-    # registryURL: https://spsrc27.iaa.csic.es/reg
-    registryURL:
 
     # This applies to the POSIX Mapper itself.  Meaning, this Pod will be scheduled as described
     # by the nodeAffinity clause.
