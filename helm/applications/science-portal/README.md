@@ -1,6 +1,6 @@
 # scienceportal
 
-![Version: 1.0.2](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.1](https://img.shields.io/badge/AppVersion-1.0.1-informational?style=flat-square)
+![Version: 1.0.3](https://img.shields.io/badge/Version-1.0.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 1.0.2](https://img.shields.io/badge/AppVersion-1.0.2-informational?style=flat-square)
 
 A Helm chart to install the Science Portal UI
 
@@ -21,6 +21,8 @@ A Helm chart to install the Science Portal UI
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| deployment.sciencePortal.registryURL | string | `""` | IVOA Registry locataion |
+| deployment.sciencePortal.registryURLs | list | `[]` | Optional array of IVOA Registry locations for resiliency.  This will override (and eventually replace) the single registryURL option. |
 | deployment.hostname | string | `"example.host.com"` |  |
 | deployment.sciencePortal.gmsID | string | `nil` |  |
 | deployment.sciencePortal.identityManagerClass | string | `"org.opencadc.auth.StandardIdentityManager"` |  |

@@ -14,8 +14,8 @@ A Helm chart to install the UID/GID POSIX Mapper
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| deployment.cavern.registryURL | string | `""` | IVOA Registry locataion |
-| deployment.cavern.registryURLs | list | `[]` | Optional array of IVOA Registry locations for resiliency.  This will override (and eventually replace) the single registryURL option. |
+| deployment.posixMapper.registryURL | string | `""` | IVOA Registry locataion |
+| deployment.posixMapper.registryURLs | list | `[]` | Optional array of IVOA Registry locations for resiliency.  This will override (and eventually replace) the single registryURL option. |
 | deployment.hostname | string | `"example.org"` |  |
 | deployment.posixMapper.gmsID | string | `nil` |  |
 | deployment.posixMapper.image | string | `"images.opencadc.org/platform/posix-mapper:0.3.3"` |  |

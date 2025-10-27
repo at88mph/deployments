@@ -1,4 +1,7 @@
-# CHANGELOG for Science Portal UI (Chart 1.0.2)
+# CHANGELOG for Science Portal UI (Chart 1.0.3)
+
+## 2025.10.27 (1.0.3)
+- Support multiple IVOA Registries for resiliency
 
 ## 2025.10.27 (1.0.2)
 - Add configuration for default project to pre-select in the pull-down menu.

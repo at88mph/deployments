@@ -32,6 +32,17 @@ deployment:
     image: images.opencadc.org/platform/science-portal:1.0.2
     imagePullPolicy: Always
 
+    # Set the Registry URL pointing to the desired registry (https:// URL)
+    # registryURL: https://example.org/reg
+
+    # Optional array of registry URLs for resiliency.  This will override (and one day replace) the single registryURL option.
+    #
+    # Example:
+    # registryURLs:
+    #   - https://registry1.example.org/reg
+    #   - https://registry2.example.org/reg
+    registryURLs: []
+
     # org.opencadc.science-portal.tabLabels
     # The tab labels to show in the Science Portal UI.
     # This must be a list of exactly two labels.
@@ -98,9 +109,6 @@ deployment:
       # callbackURI:
       # The standard OpenID scopes for token requests.  This is required.
       # scope: "openid profile offline_access"
-
-    # Set the Registry URL pointing to the desired registry (https:// URL)
-    # registryURL: https://example.org/reg
 
     # This applies to the Science Portal itself.  Meaning, this Pod will be scheduled as described
     # by the nodeAffinity clause.
