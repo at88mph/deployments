@@ -1,4 +1,7 @@
-# CHANGELOG for Cavern User Storage (Chart 0.7.1)
+# CHANGELOG for Cavern User Storage (Chart 0.8.0)
+
+## 2025.10.27 (0.8.0)
+- Support multiple IVOA Registries for resiliency
 
 ## 2025.09.22 (0.7.1)
 - Make liveness and readiness probes configurable.

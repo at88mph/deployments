@@ -11,7 +11,7 @@ skaha:
 deployment:
   hostname: example.org
   cavern:
-    image: images.opencadc.org/platform/cavern:0.9.0
+    image: images.opencadc.org/platform/cavern:0.9.1
     imagePullPolicy: IfNotPresent
 
     # How cavern identifies itself.
@@ -19,6 +19,14 @@ deployment:
 
     # Set the Registry URL pointing to the desired registry (https:// URL)
     # registryURL: https://example.org/reg
+
+    # Optional array of registry URLs for resiliency.  This will override (and one day replace) the single registryURL option.
+    #
+    # Example:
+    # registryURLs:
+    #   - https://registry1.example.org/reg
+    #   - https://registry2.example.org/reg
+    registryURLs: []
 
     # This applies to Cavern itself.  Meaning, this Pod will be scheduled as described
     # by the nodeAffinity clause.
