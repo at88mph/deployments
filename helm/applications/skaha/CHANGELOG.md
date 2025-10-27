@@ -1,4 +1,7 @@
-# CHANGELOG for Skaha User Session API (Chart 1.1.1)
+# CHANGELOG for Skaha User Session API (Chart 1.1.2)
+
+## 2025.10.27 (1.1.2)
+- Support multiple IVOA Registries for resiliency
 
 ## 2025.10.23 (1.1.1)
 - Fix for incorrect checking of existing running sessions (i.e. "Failed" status)

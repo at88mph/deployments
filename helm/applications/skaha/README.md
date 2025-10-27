@@ -23,6 +23,8 @@ A Helm chart to install the Skaha web service of the CANFAR Science Platform
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | deployment.hostname | string | `"myhost.example.com"` |  |
+| deployment.skaha.registryURL | string | `""` | IVOA Registry locataion |
+| deployment.skaha.registryURLs | list | `[]` | Optional array of IVOA Registry locations for resiliency.  This will override (and eventually replace) the single registryURL option. |
 | deployment.skaha.apiVersion | string | `"v1"` |  |
 | deployment.skaha.defaultQuotaGB | string | `"10"` |  |
 | deployment.skaha.identityManagerClass | string | `"org.opencadc.auth.StandardIdentityManager"` |  |

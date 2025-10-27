@@ -18,6 +18,19 @@ deployment:
     image: images.opencadc.org/platform/skaha:1.1.2
     imagePullPolicy: Always
 
+    # Set the Registry URL pointing to the desired registry (https:// URL)
+    # Example:
+    #   registryURL: https://example.org/reg
+    registryURL:
+
+    # Optional array of registry URLs for resiliency.  This will override (and one day replace) the single registryURL option.
+    #
+    # Example:
+    # registryURLs:
+    #   - https://registry1.example.org/reg
+    #   - https://registry2.example.org/reg
+    registryURLs: []
+
     # Cron string for the image caching cron job schedule. Defaults to every half hour.
     imageCache:
       refreshSchedule: "*/30 * * * *"
@@ -70,9 +83,6 @@ deployment:
 
     # The Resource ID (URI) of the GMS Service.
     # gmsID: ivo://example.org/gms
-
-    # The absolute URL of the IVOA Registry where services are registered
-    # registryURL: https://spsrc27.iaa.csic.es/reg
 
     # This applies to Skaha itself.  Meaning, this Pod will be scheduled as described
     # by the nodeAffinity clause.
