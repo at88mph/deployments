@@ -7,22 +7,20 @@ kubernetesClusterDomain: cluster.local
 # Tell Kubernetes to spin up multiple instances.  Defaults to 1.
 replicaCount: 1
 
-# It's best to keep these set as such, unless you're willing to change these in several places.
-skaha:
-  namespace: skaha-system
+# It's best to keep this set as such, unless you're willing to change these in several places.
 skahaWorkload:
   namespace: skaha-workload
-
+ 
 # Skaha web service deployment
 deployment:
   hostname: myhost.example.com  # Change this!
   skaha:
-    image: images.opencadc.org/platform/skaha:0.27.5
+    image: images.opencadc.org/platform/skaha:1.0.3
     imagePullPolicy: Always
 
-    # Cron string for the image caching cron job schedule. Defaults to every minute.
+    # Cron string for the image caching cron job schedule. Defaults to every half hour.
     imageCache:
-      refreshSchedule: "*/1 * * * *"
+      refreshSchedule: "*/30 * * * *"
   
     # Set the top-level-directory name that gets mounted at the root.
     # skahaTld: "/cavern"
@@ -32,6 +30,12 @@ deployment:
 
     # Space delimited list of allowed Image Registry hosts.  These hosts should match the hosts in the User Session images.
     registryHosts: "images.canfar.net"
+
+    init:
+      # The image to use for the init container.  Unless you have a reason to change this, leave it alone.
+      # This image is used to create the /home and /projects directories, in case Cavern is not already running.
+      image: busybox:1.37.0
+      imagePullPolicy: IfNotPresent
 
     # The IVOA GMS Group URI to verify users against for permission to use the Science Platform.
     # See https://www.ivoa.net/documents/GMS/20220222/REC-GMS-1.0.html#tth_sEc3.2
@@ -84,10 +88,95 @@ deployment:
       minEphemeralStorage: "20Gi"   # The initial requested amount of ephemeral (local) storage.  Does NOT apply to Desktop sessions.
       maxEphemeralStorage: "200Gi"  # The maximum amount of ephemeral (local) storage to allow a Session to extend to.  Does NOT apply to Desktop sessions.
 
+      # The storage spec that gets mounted into User Sessions that provides /home and /projects.
+      # Deaftults to a PVC named skaha-workload-cavern-pvc.
+      # This must be a storage spec that Kubernetes understands.  See https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims
+      # Example:
+      #   storageSpec:
+      #     hostPath:
+      #       path: /path/to/host/dir
+      #       type: Directory
+      #    
+      #   storageSpec:
+      #     emptyDir: {}
+      # 
+      #   storageSpec:
+      #     persistentVolumeClaim:
+      #       claimName: my-pvc-name
+      storageSpec:
+        persistentVolumeClaim:   # The storage spec that gets mounted into User Sessions at /home and /projects.
+          claimName: skaha-workload-cavern-pvc
+
+      # The image pull policy for User Sessions (applies to ALL types).  This is the default, but can be overridden.  Deafults to Always.
+      # @see https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy
+      # Example:
+      #   imagePullPolicy: IfNotPresent
+      imagePullPolicy: Always 
+
+      # Optionally configure the initContainer image for Redis.  Useful for those not able to reach docker.io
+      # Defaults to redis-7.4.2-alpine3.21.
+      # Example:
+      #   initContainerImage: "private-image-repo/project/my-own-redis:1.0"
+      # initContainerImage:
+
+      # Optionally configure the Kueue system to handle large workloads.  Configurable per session type (e.g. desktop, notebook, etc.).
+      # Leaving this empty will default to submitting Jobs to the base Kubernetes system.
+      # Provide a default configuration for all session types, or omit and only configure specific session types.
+      # Provided PriorityClass names are "high", "medium", and "low".
+      # @see https://kueue.sigs.k8s.io/docs/
+      # @see https://github.com/opencadc/deployments/tree/main/configs/kueue
+      # Example 1:
+      #   # Configure notebook, desktop, and default session types.
+      #   kueue:
+      #     notebook:
+      #       queueName: "notebook-queue"
+      #       priorityClass: "medium"
+      #     desktop:
+      #       queueName: "desktop-queue"
+      #       priorityClass: "low"
+      #     default:
+      #       queueName: "default-queue"
+      #       priorityClass: "medium"
+      #
+      # Example 2:
+      #    # Configure contributed session types.  All else will use the bare Kubernetes system.
+      #    kueue:
+      #      contributed:
+      #        queueName: "contributed-queue"
+      #        priorityClass: "high"
+      #
+      # Example 3:
+      #    # Configure Kueue for all user session types.
+      #    kueue:
+      #      default:
+      #        queueName: "all-user-sessions-local-queue"
+      #        priorityClass: "medium"
+      kueue: {}
+
+      # This is a list of tolerations that will be added to the Pod spec of the User Sessions.
+      # @see https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+      # @see ./README.md#notes-on-tolerations-and-nodeaffinity
+      # 
+      # Example:
+      # tolerations:
+      # - key: "key1"
+      #   operator: "Equal"
+      #   value: "value1"
+      #   effect: "NoSchedule"
+      # 
+      tolerations: []
+
       # Optionally setup a separate host for User Sessions for Skaha to redirect to.  The HTTPS scheme is assumed.  Defaults to the Skaha hostname.
       # Example:
       #   hostname: myhost.example.org
       # hostname:
+
+      # Optionally set the TLS configiuration that contains the certificate information for the alternate hostname for User Sessions.  This will go into the Traefik IngressRoute spec.
+      # @see https://doc.traefik.io/traefik/v2.3/routing/providers/kubernetes-crd/#kind-ingressroute
+      # Example:
+      #   tls:
+      #     secretName: myhost-tls-secret
+      tls: {}
 
       # Declare extra volume mounts in User Sessions.  The "type: parameter in volume section is constant.
       # extraVolumes:
@@ -141,11 +230,11 @@ deployment:
     # For units of storage, see https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-memory.
     resources:
       requests:
-        memory: "1Gi"
-        cpu: "500m"
+        memory: "2Gi"
+        cpu: "1000m"
       limits:
-        memory: "1Gi"
-        cpu: "500m"
+        memory: "3Gi"
+        cpu: "2000m"
 
     # Uncomment to debug.  Requires options above as well as service port exposure below.
     # extraPorts:
@@ -171,6 +260,12 @@ deployment:
     #     defaultMode: 420
     #     secretName: skaha-cacert-secret
 
+    # API version that is currently in use for this deployment.  Leave this alone unless you know what you're doing.
+    # This the version that will show up in the path for the request (e.g. '/skaha/v0/session').
+    # Example:
+    #   apiVersion: 'v0'
+    apiVersion: 'v1'
+
   # Specify extra hostnames that will be added to the Pod's /etc/hosts file.  Note that this is in the
   # deployment object, not the skaha one.
   # extraHosts:
@@ -178,20 +273,37 @@ deployment:
   #     hostname: myhost.example.org
   # extraHosts: []
 
+# This is a list of tolerations that will be added to the Pod spec of the Skaha API.
+# @see https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+# @see ./README.md#notes-on-tolerations-and-nodeaffinity
+# 
+# Example:
+# tolerations:
+# - key: "key1"
+#   operator: "Equal"
+#   value: "value1"
+#   effect: "NoSchedule"
+# 
+tolerations: []
+
+# Port to expose from the service.  This will ultimately serve port 8080 (default Tomcat port), but will
+# be exposed as per the port below.  Useful for running multiple deployments side-by-side.
+# Defaults to 8080.
+# Example:
+#   service:
+#     port: 8081. # To map port 8081 to port 8080.
+service:
+  port: 8080
+
+# Selectively disable ingress if desired.  This is enabled by default.
+ingress:
+  enabled: true
+  path: /skaha
 
 secrets:
   # Uncomment to enable local or self-signed CA certificates for your domain to be trusted.
   # skaha-cacert-secret:
   #   ca.crt: <base64 encoded CA crt>
-
-# Set these appropriately to match your Persistent Volume labels.
-storage:
-  service:
-    spec:
-      # YAML for service mounted storage.
-      # Example is the persistentVolumeClaim below.
-      # persistentVolumeClaim:
-      #   claimName: skaha-pvc
 
 # For caching images from the Image Repository and for the writing the POSIX Users and Groups to be shared with Job files
 redis:

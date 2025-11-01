@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: storage-ui-tomcat-svc
-  namespace: {{ .Values.skaha.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     run: storage-ui-tomcat-svc
 spec:
@@ -11,10 +11,8 @@ spec:
     name: http-connection
     protocol: TCP
   {{ with .Values.service }}
-    {{ with .reg }}
-      {{ with .extraPorts }}
+    {{ with .extraPorts }}
   {{- toYaml . | nindent 2 }}
-      {{- end }}
     {{- end }}
   {{- end }}
   selector:

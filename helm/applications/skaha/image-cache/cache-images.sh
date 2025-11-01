@@ -4,9 +4,11 @@ URL="https://$harborHost/api/v2.0/projects?page_size=100"
 PROJECT_URL="https:/$harborHost/api/v2.0/projects"
 
 # checking if redis instance available or not
-if ! redis-cli -h $REDIS_HOST -p $REDIS_PORT ping > /dev/null 2>&1; then
+if [ -z "$HARBOR_HOST" ]; then
     echo "Redis server is not running. Please start the Redis server and try again."
     exit 1
+else
+    echo "Writing to ${REDIS_HOST}:${REDIS_PORT}"
 fi
 
 temp_key=$(date +%s)
@@ -16,7 +18,7 @@ echo "$harborHosts" | while read -r harborHost; do
     URL="https://$harborHost/api/v2.0/projects?page_size=100"
     PROJECT_URL="https://$harborHost/api/v2.0/projects"
 
-    echo "fetching the images host: $URL"
+    echo "Fetching images from ${URL}..."
     response=$(curl -k $URL)
 
     # Parse the response and iterate over the list
@@ -48,7 +50,6 @@ echo "$harborHosts" | while read -r harborHost; do
 
                 # check if labels are empty
                 if [ -z "$labelArray" ] || [ "$labelArray" == "null" ]; then
-                    echo "No labels found for $image_id"
                     continue
                 fi
 
@@ -56,6 +57,7 @@ echo "$harborHosts" | while read -r harborHost; do
 
                 refined_artifact=$(echo $artifact | jq -c --argjson labels "$labels" --arg id "$image_id" '{id: $id, types: $labels, digest: .digest}')
                 echo $refined_artifact | redis-cli -h $REDIS_HOST -p $REDIS_PORT -x rpush "$temp_key"
+                echo "Added ${image_id}"
             done
         done
     done

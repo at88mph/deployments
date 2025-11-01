@@ -1,0 +1,477 @@
+# Default values for skaha.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+global:
+  # Hostname to use for all ingress routes (if not set, each service will use its own hostname setting)
+  hostname: ""
+
+  # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+  replicaCount: 1
+  imagePullSecrets: []
+  imagePullPolicy: IfNotPresent
+
+  # Set the Registry URL pointing to the desired registry containing IVOA compliant services to lookup.
+  # Example:
+  #   registryURL: https://example.org/reg
+  registryURL: ""
+
+  # URI or URL of the OIDC (IAM) server.  Used to validate incoming tokens.
+  # Example:
+  #   oidcURI: https://iam.example.org
+  oidcURI:
+
+  # ID (URI) of the GMS Service.
+  # Example:
+  #   gmsID: ivo://example.org/gms
+  gmsID:
+
+  # Array of groups allowed to set the logging level.  If none set, then nobody can change the log level.
+  # Example:
+  #   loggingGroups:
+  #     - "admin"
+  #     - "/roles/prod/ops"
+  loggingGroups: []
+
+  # The IdentityManager class handling authentication.  This should generally be left alone unless deployed internally for the CADC.  Required.
+  # Example:
+  #   identityManagerClass: "org.opencadc.auth.StandardIdentityManager"
+  identityManagerClass: "org.opencadc.auth.StandardIdentityManager"
+
+  # This is for setting Kubernetes Annotations to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+  podAnnotations: {}
+  
+  # This is for setting Kubernetes Labels to a Pod.
+  # For more information checkout: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+  podLabels: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+
+  # The IdentityManager class handling authentication.  This should generally be left alone unless deployed internally for the CADC.  Required.
+  # Example:
+  #   identityManagerClass: "org.opencadc.auth.StandardIdentityManager"
+  identityManagerClass: "org.opencadc.auth.StandardIdentityManager"
+
+  # This section builds out the service account more information can be found here: https://kubernetes.io/docs/concepts/security/service-accounts/
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Automatically mount a ServiceAccount's API credentials?
+    automount: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: ""
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+  
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 1
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: images.opencadc.org/platform/skaha
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "1.0.3"
+
+# Skaha configuration settings.
+
+# How cavern identifies itself.
+# This should be a valid IVOA identifier.
+# Example: 
+#   resourceID: "ivo://example.org/cavern"
+resourceID: ""
+
+# The Resource ID, or full URL, of the Service that contains the Posix Mapping information.
+# Example:
+#   posixMapperResourceID: "ivo://example.org/posix-mapper"
+#   posixMapperResourceID: "https://example.org/posix-mapper"
+posixMapperResourceID: ""
+
+# The IVOA GMS Group URI to verify users against for permission to use the Science Platform.
+# See https://www.ivoa.net/documents/GMS/20220222/REC-GMS-1.0.html#tth_sEc3.2
+# usersGroup: "ivo://example.org/gms?prototyping-groups/mini-src/platform-users"
+
+# The IVOA GMS Group URI to verify images without contacting Harbor.
+# See https://www.ivoa.net/documents/GMS/20220222/REC-GMS-1.0.html#tth_sEc3.2
+# adminsGroup: "ivo://example.org/gms?prototyping-groups/mini-src/platform-users"
+
+# Group URI for users to preempt headless jobs.
+# See https://www.ivoa.net/documents/GMS/20220222/REC-GMS-1.0.html#tth_sEc3.2
+# headlessGroup: "ivo://example.org/gms?prototyping-groups/mini-src/platform-users"
+
+# Group URI for users to ensure priority for their headless jobs.
+# See https://www.ivoa.net/documents/GMS/20220222/REC-GMS-1.0.html#tth_sEc3.2
+# headlessPriorityGroup: "ivo://example.org/gms?skaha-priority-headless-users"
+
+# Class name to set for priority headless jobs.
+# headlessPriorityClass: uber-user-preempt-high
+
+# Optional rename of the application from the default "skaha".
+# Update the ingress path if you change this!
+# Example:
+#   applicationName: "my-skaha"
+applicationName: ""
+
+# Cron string for the image caching cron job schedule. Defaults to every half hour.
+imageCache:
+  refreshSchedule: "*/30 * * * *"
+  
+# Set the top-level-directory name that gets mounted at the root.
+# skahaTld: "/cavern"
+
+# Used when allocating first-time users into the system.
+defaultQuotaGB: "10"
+
+# API version that is currently in use for this deployment.  Leave this alone unless you know what you're doing.
+# This the version that will show up in the path for the request (e.g. '/skaha/v1/session').
+# Example:
+#   apiVersion: 'v0'
+apiVersion: 'v1'
+
+# Configuration for User Session launching and management.
+sessions:
+  namespace: "skaha-workload"  # The Kubernetes Namespace to launch User Sessions into.
+
+  # List of allowed Image Repository hosts.  These hosts should match the hosts in the User Session images.
+  repositoryHosts:
+    - "images.canfar.net"
+
+  expirySeconds: "345600"   # Duration, in seconds, until they expire and are shut down.
+  maxInteractiveCount: "3"  # Max number of sessions per user.
+  minEphemeralStorage: "20Gi"   # The initial requested amount of ephemeral (local) storage.  Does NOT apply to Desktop sessions.
+  maxEphemeralStorage: "200Gi"  # The maximum amount of ephemeral (local) storage to allow a Session to extend to.  Does NOT apply to Desktop sessions.
+
+  # The storage spec that gets mounted into User Sessions that provides /home and /projects.
+  # Deaftults to a PVC named skaha-workload-cavern-pvc.
+  # This must be a storage spec that Kubernetes understands.  See https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims
+  # Example:
+  #   storageSpec:
+  #     hostPath:
+  #       path: /path/to/host/dir
+  #       type: Directory
+  #    
+  #   storageSpec:
+  #     emptyDir: {}
+  # 
+  #   storageSpec:
+  #     persistentVolumeClaim:
+  #       claimName: my-pvc-name
+  storageSpec:
+    persistentVolumeClaim:   # The storage spec that gets mounted into User Sessions at /home and /projects.
+      claimName: skaha-workload-cavern-pvc
+
+  # The image pull policy for User Sessions (applies to ALL types).  This is the default, but can be overridden.  Deafults to Always.
+  # @see https://kubernetes.io/docs/concepts/containers/images/#image-pull-policy
+  # Example:
+  #   imagePullPolicy: IfNotPresent
+  imagePullPolicy: Always
+
+  # Optionally configure the Kueue system to handle large workloads.  Configurable per session type (e.g. desktop, notebook, etc.).
+  # Leaving this empty will default to submitting Jobs to the base Kubernetes system.
+  # Provide a default configuration for all session types, or omit and only configure specific session types.
+  # Provided PriorityClass names are "high", "medium", and "low".
+  # @see https://kueue.sigs.k8s.io/docs/
+  # @see https://github.com/opencadc/deployments/tree/main/configs/kueue
+  # Example 1:
+  #   # Configure notebook, desktop, and default session types.
+  #   kueue:
+  #     notebook:
+  #       queueName: "notebook-queue"
+  #       priorityClass: "medium"
+  #     desktop:
+  #       queueName: "desktop-queue"
+  #       priorityClass: "low"
+  #     default:
+  #       queueName: "default-queue"
+  #       priorityClass: "medium"
+  #
+  # Example 2:
+  #    # Configure contributed session types.  All else will use the bare Kubernetes system.
+  #    kueue:
+  #      contributed:
+  #        queueName: "contributed-queue"
+  #        priorityClass: "high"
+  #
+  # Example 3:
+  #    # Configure Kueue for all user session types.
+  #    kueue:
+  #      default:
+  #        queueName: "all-user-sessions-local-queue"
+  #        priorityClass: "medium"
+  kueue: {}
+
+  # This is a list of tolerations that will be added to the Pod spec of the User Sessions.
+  # @see https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  # @see ./README.md#notes-on-tolerations-and-nodeaffinity
+  # 
+  # Example:
+  # tolerations:
+  # - key: "key1"
+  #   operator: "Equal"
+  #   value: "value1"
+  #   effect: "NoSchedule"
+  # 
+  tolerations: []
+
+  # Optionally setup a separate host for User Sessions for Skaha to redirect to.  The HTTPS scheme is assumed.  Defaults to the Skaha hostname.
+  # Example:
+  #   hostname: myhost.example.org
+  # hostname:
+
+  # Optionally set the TLS configiuration that contains the certificate information for the alternate hostname for User Sessions.  This will go into the Traefik IngressRoute spec.
+  # @see https://doc.traefik.io/traefik/v2.3/routing/providers/kubernetes-crd/#kind-ingressroute
+  # Example:
+  #   tls:
+  #     secretName: myhost-tls-secret
+  tls: {}
+
+  # Declare extra volume mounts in User Sessions.  The "type: parameter in volume section is constant.
+  # extraVolumes:
+  # - name: example-pvc-name
+  #   volume:
+  #     type: PVC           # PVC is for Persistant volume claim
+  #     name: pvc-name
+  #   volumeMount:
+  #     mountPath: "/pvc-volume-mount"
+  #     subPath: "pvc"
+  # - name: example-hostpath-name
+  #   volume:
+  #     type: HOST_PATH     # HOST_PATH is for host path
+  #     hostPath: "/host-path"
+  #     hostPathType: Directory
+  #   volumeMount:
+  #     mountPath: "/host-path"
+  #     readOnly: true
+  #     mountPropagation: HostToContainer
+  # - name: config-map-volume
+  #   volume:
+  #     type: CONFIG_MAP    # CONFIG_MAP is for config map
+  #     name: example-config-map-name
+  #     defaultMode: "0777"
+  #   volumeMount:
+  #     mountPath: "/cmp"
+  # - name: secret-volume
+  #   volume:
+  #     type: SECRET        # SECRET is for secrets
+  #     name: example-secret-name
+  #     defaultMode: "0777"
+  #   volumeMount:
+  #     mountPath: "/scrt"
+
+  # When set to 'true' this flag will enable GPU node scheduling.  Don't forget to declare any related GPU configurations, if appropriate, in the nodeAffinity below!
+  # gpuEnabled: false
+
+  # Set the YAML that will go into the "affinity.nodeAffinity" stanza for Pod Spec in User Sessions.  This can be used to enable GPU scheduling, for example, 
+  # or to control how and where User Session Pods are scheduled.  This can be potentially dangerous unless you know what you are doing.
+  # See https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity
+  # nodeAffinity: {}
+
+  # Storage setings to be passed into the User Session Kubernetes Job spec.
+  userStorage:
+    # Required.  ABSOLUTE path mount point to where the top level directory is mounted in the User Sessions.  For most, this can be set to "/cavern", and
+    # it is expected that the "/home" and the "/projects" folders will be found under this path (i.e. "/cavern/home" and "/cavern/projects").
+    # Example:
+    #   topLevelDirectory: "/cavern"
+    #
+    topLevelDirectory: "/cavern"
+
+    # Required.  RELATIVE path to the User Storage Home folder.  This is the folder where the User's home directories will be created.  Defaults to "home".
+    # Example:
+    #   homeDirectory: "home"
+    #
+    homeDirectory: "home"
+
+    # Required.  RELATIVE path to the User Storage Projects folder.  This is the folder where the Users can share data.  This is used for CARTA sessions.  Defaults to "projects".
+    # Example:
+    #   projectsDirectory: "projects"
+    #
+    projectsDirectory: "projects"
+
+    # Optional. Name of the Persistent Volume Claim to use for User Storage when mounted into sessions.  Defaults to "skaha-workload-cavern-pvc".
+    # Example:
+    #   persistentVolumeClaimName: "skaha-workload-cavern-pvc"
+    # persistentVolumeClaimName: 
+
+    # Required.  The VOSpace Service URI (uses ivo:// scheme) for the Cavern Service.
+    # This is the VOSpace location where user home directories will be created, as well as any other user data.  Requires Cavern to be running.
+    # Example:
+    #   serviceURI: "ivo://example.org/cavern"
+    # serviceURI:
+
+    # Required.  The VOSpace Resource ID (Node URI) prefix (uses vos:// scheme) for the Cavern Service.
+    # Example:
+    #   nodeURIPrefix: "vos://skao.int~cavern"
+    # nodeURIPrefix:
+
+    # Required.  These are the credentials and details to connect to the Cavern service to provide Administrative access to User Storage, namely creating new allocations.
+    admin:
+      auth:
+        # Authenticate with an agreed API Key between Skaha and Cavern.  This is used to create new user home directories (allocations).
+        # Generate Key: 
+        #   $ openssl rand -base64 32
+        #   $ jMTZdM/qqZ0knXUXbiX8T4T0CyGnhqWdJS2tVLZta2I=
+        # Example:
+        #   apiKey: "jMTZdM/qqZ0knXUXbiX8T4T0CyGnhqWdJS2tVLZta2I="  # Ensure this value is also used in the Cavern deployment's apiKeys object as "skaha:jMTZdM/qqZ0knXUXbiX8T4T0CyGnhqWdJS2tVLZta2I=".
+        # apiKey:
+
+        # Alternatively, you can specify a Kubernetes Secret that contains a PEM Client Certificate representing the User Storage Admin.
+        # If both this and the OIDC Client are specified, Helm will throw an error.
+        # Default key is "cadcproxy.pem", but you can override it.
+        # Example:
+        #   certificateSecret: 
+        #     name: "science-platform-user-storage-admin-certificate"
+        #     key: "certificate.pem"  # The key in the Secret that contains the PEM certificate
+        # certificateSecret:
+
+# End Skaha configuration settings.
+
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
+service:
+  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+  type: ClusterIP
+  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+  port: 8080
+
+# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+# -- Expose the service via gateway-api HTTPRoute
+# Requires Gateway API resources and suitable controller installed within the cluster
+# (see: https://gateway-api.sigs.k8s.io/guides/)
+httpRoute:
+  # HTTPRoute enabled.
+  enabled: false
+  # HTTPRoute annotations.
+  annotations: {}
+  # Which Gateways this Route is attached to.
+  parentRefs:
+  - name: gateway
+    sectionName: http
+    # namespace: default
+  # Hostnames matching HTTP header.
+  hostnames:
+  - chart-example.local
+  # List of rules and filters applied.
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /headers
+  #   filters:
+  #   - type: RequestHeaderModifier
+  #     requestHeaderModifier:
+  #       set:
+  #       - name: My-Overwrite-Header
+  #         value: this-is-the-only-value
+  #       remove:
+  #       - User-Agent
+  # - matches:
+  #   - path:
+  #       type: PathPrefix
+  #       value: /echo
+  #     headers:
+  #     - name: version
+  #       value: v2
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+# Example:
+#   livenessProbe:
+#     httpGet:
+#       path: /cavern/availability
+#       port: http
+livenessProbe: {}
+
+# Example:
+#   readinessProbe:
+#     httpGet:
+#       path: /cavern/availability
+#       port: http
+readinessProbe: {}
+
+# This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+# For caching images from the Image Repository and for the writing the POSIX Users and Groups to be shared with Job files
+redis:
+  architecture: 'standalone'
+  auth:
+    enabled: false
+  master:
+    persistence:
+      enabled: false
+    containerSecurityContext:
+      runAsUser: 1001
+      runAsGroup: 1001
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      seccompProfile:
+        type: RuntimeDefault
+      capabilities:
+        drop: ["ALL"]

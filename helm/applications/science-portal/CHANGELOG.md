@@ -1,4 +1,27 @@
-# CHANGELOG for Science Portal UI (Chart 0.5.0)
+# CHANGELOG for Science Portal UI (Chart 1.0.0)
+
+## 2025.09.09 (1.0.0)
+- Official release
+- Add Cavern portal information
+- Fixed vs flex sessions
+
+## 2025.08.21 (0.7.1)
+- Fix: New documentation links
+
+## 2025.06.20 (0.7.0)
+- Small fix to enable experimental features in the `values.yaml` file.
+
+## 2025.06.17 (0.6.4)
+- Small fix for deploying with an existing secret for the client.
+- **EXPERIMENTAL**: Added `experimentalFeatures` to feature-flag user storage quota display.
+
+## 2025.05.09 (0.6.0)
+- Add support for Firefly sessions
+- Drop suport for JDK 1.8.
+
+## 2025.04.15 (0.5.1)
+- Add `tolerations` feature for `science-portal` UI.  Redis values can be added in the `redis` sub-chart stanza.
+  - See https://github.com/opencadc/deployments/issues/29
 
 ## 2024.12.11 (0.5.0)
 - Added support for `securityContext`

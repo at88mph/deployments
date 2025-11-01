@@ -1,4 +1,76 @@
-# CHANGELOG for Skaha User Session API (Chart 0.10.3)
+# CHANGELOG for Skaha User Session API (Chart 1.0.4)
+
+## 2025.09.11 (1.0.4)
+- Provide Kueue examples with documentation
+- Fix typo in headless priority class name setting
+- Fix environment variable name to properly be uppercase for headless priority class
+- Bump Skaha API image to `1.0.3`
+
+## 2025.09.10 (1.0.3)
+- Fix to display GPU Cores
+
+## 2025.09.10 (1.0.2)
+- Remove Firefly `readinessProbe` to investigate timeouts
+
+## 2025.09.10 (1.0.1)
+- Fix NPE when launching Desktop App
+- Fix for Job listing omitting Jobs with a failed Pod, but Active Pods are still greater than zero (0)
+
+## 2025.09.09 (1.0.0)
+- Official release
+- Add CARTA 5.0
+- Support for Kueue
+
+## 2025.08.19 (0.11.23)
+- Feature: API version configurable (Revert Ingress)
+
+## 2025.08.19 (0.11.21)
+- Feature: Add release name to make unique object names
+
+## 2025.08.19 (0.11.17)
+- Feature: Add support for configuring API versioning.
+
+## 2025.08.01 (0.11.16)
+- Fix: Connection leaks detected from repeated Redis access.  Blocked those up.
+
+## 2025.07.15 (0.11.15)
+- Feature: Set the default memory consumption to 1Gi.
+
+## 2025.07.11 (0.11.14)
+- Feature: Set the default resource consumption request (RAM and CPU Cores) for User Sessions when none are specified.
+- Feature: Bump Skaha API image to `0.29.1`.
+
+## 2025.07.10 (0.11.13)
+- Feature: Add support for TLS in User Sessions IngressRoute.
+
+## 2025.07.09 (0.11.12)
+- Fix: Remove unnecessary missing label messager from image caching script.
+- Feature: Make `imagePullPolicy` configurable for User Sessions.
+
+## 2025.06.10 (0.11.10)
+- Fix: Do not assume separate Namespaces for the User Sessions and Skaha API.  The Workload Namespace defaults to `skaha-workload`, but will use the same as the Skaha API if empty.
+
+## 2025.05.08 (0.11.9)
+- Update image version to reflect Firefly changes
+
+## 2025.05.08 (0.11.8)
+- Add Firefly backend type to Skaha API
+
+## 2025.05.08 (0.11.7)
+- Fix for Redis image setting for initContainers.
+
+## 2025.04.15 (0.11.4)
+- Add `tolerations` feature for `skaha` API and User Sessions.
+  - See https://github.com/opencadc/deployments/issues/29
+
+## 2025.04.10 (0.11.3)
+- Fix for multiple Harbor repository hosts (`registryHosts` variable)
+
+## 2025.03.14 (0.11.2)
+- Fix for how Skaha queries for `LocalQueue` objects.
+
+## 2025.03.11 (0.11.0)
+- Configure queueing system via Kueue.
 
 ## 2025.02.06 (0.10.3)
 - Omit image pull secrets (`imagePullSecrets`) from `Job` launch when not used.

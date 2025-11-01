@@ -1,0 +1,86 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  namespace: {{ .Release.Namespace }}
+data:
+    cadc-log.properties: |
+{{- range $val := .Values.global.loggingGroups }}
+        group = {{ $val }}
+{{- end }}
+    cadc-registry.properties: |
+        ivo://ivoa.net/std/GMS#search-1.0 = {{ .Values.global.gmsID | required "The GMS locator (gmsID) is required" }}
+        ivo://ivoa.net/std/GMS#users-1.0 = {{ .Values.global.gmsID }}
+        ivo://ivoa.net/std/UMS#users-1.0 = {{ .Values.global.gmsID }}
+        ivo://ivoa.net/sso#OAuth = {{ .Values.global.oidcURI }}
+        ivo://ivoa.net/sso#OpenID = {{ .Values.global.oidcURI }}
+
+        # Ignore this, it's only here to satisfy the availability check.
+        ivo://ivoa.net/std/CDP#proxy-1.0 = ivo://cadc.nrc.ca/cred
+
+        http://www.opencadc.org/std/posix#group-mapping-0.1 = {{ .Values.posixMapperResourceID | required "The locator for the POSIX Mapper service (posixMapperResourceID) is required" }}
+        http://www.opencadc.org/std/posix#user-mapping-0.1 = {{ .Values.posixMapperResourceID }}
+
+        ca.nrc.cadc.reg.client.RegistryClient.baseURL = {{ .Values.global.registryURL | required "A registryURL is required" }}
+
+    catalina.properties: |
+        tomcat.connector.scheme=https
+        tomcat.connector.proxyName={{ .Values.global.hostname }}
+        tomcat.connector.proxyPort=443
+        ca.nrc.cadc.auth.PrincipalExtractor.enableClientCertHeader=true
+        ca.nrc.cadc.util.Log4jInit.messageOnly=true
+        ca.nrc.cadc.auth.IdentityManager={{ .Values.global.identityManagerClass }}
+        org.opencadc.skaha.posixCache.url=redis://{{ $.Release.Name }}-redis-master:6379
+
+    war-rename.conf: |
+        {{- if .Values.applicationName }}
+        mv skaha.war {{ .Values.applicationName }}.war
+        {{- end }}
+
+---
+# ConfigMap for the scripts to write out the /etc/passwd and /etc/group files with the
+# CADC users and groups from Redis.
+# This ConfigMap is mounted into the User Session Pods.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-init-users-groups-config
+  namespace: {{ .Release.Namespace }}
+data:
+  init-users-groups.sh: |
+    #!/bin/sh
+
+    # It is expected that /etc-passwd and /etc-group exist and contain the original passwd files
+    # named passwd-orig and group-orig respectively.
+
+    # REDIS_URL expected to be in the environment.
+    # env:
+    #   - name: REDIS_URL
+    #     value: http://example.org:6359
+    #
+
+    SAVEIFS=$IFS
+    IFS='\n'
+
+    if [[ -z "${REDIS_URL}" ]]; then
+        echo "Required argument REDIS_URL is missing."
+        exit 1
+    else
+        echo "Using REDIS_URL: ${REDIS_URL}"
+    fi  
+
+    TARGET_PASSWD_FILE="/etc-passwd/passwd"
+    TARGET_GROUP_FILE="/etc-group/group"
+
+    # Create (or overwrite) the files
+    cat /etc-passwd/passwd-orig > "${TARGET_PASSWD_FILE}"
+    cat /etc-group/group-orig > "${TARGET_GROUP_FILE}"
+
+    # Append Science Platform users
+    redis-cli -u "${REDIS_URL}" --raw smembers "users:posix" >> "${TARGET_PASSWD_FILE}"
+    redis-cli -u "${REDIS_URL}" --raw smembers "groups:posix" >> "${TARGET_GROUP_FILE}"
+
+    # restore $IFS
+    IFS=$SAVEIFS
+

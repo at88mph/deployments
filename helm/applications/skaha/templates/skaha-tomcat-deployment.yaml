@@ -2,19 +2,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    run: skaha-tomcat
-  name: skaha-tomcat
-  namespace: {{ .Values.skaha.namespace }}
+    run: {{ .Release.Name }}-skaha-tomcat
+  name: {{ .Release.Name }}-skaha-tomcat
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ default 1 .Values.replicaCount }}
   selector:
     matchLabels:
-      run: skaha-tomcat
+      run: {{ .Release.Name }}-skaha-tomcat
   template:
     metadata:
       creationTimestamp: null
       labels:
-        run: skaha-tomcat
+        run: {{ .Release.Name }}-skaha-tomcat
     spec:
 {{- with .Values.deployment.skaha.nodeAffinity }}
       affinity:
@@ -26,8 +26,8 @@ spec:
           type: RuntimeDefault
       initContainers:
       - name: init-skaha-service
-        image: busybox
-        imagePullPolicy: IfNotPresent
+        image: {{ .Values.deployment.skaha.init.image | default "busybox:1.37.0" }}
+        imagePullPolicy: {{ .Values.deployment.skaha.init.imagePullPolicy | default "IfNotPresent" }}
         command: ['sh', '-c', 'mkdir -p ${SKAHA_TLD}/home && mkdir -p ${SKAHA_TLD}/projects']  # Expected to have /arc mounted
         volumeMounts:
         - mountPath: "{{ .Values.deployment.skaha.skahaTld }}"
@@ -69,15 +69,23 @@ spec:
           value: "{{ . }}"
         {{- end }}
         {{- with .Values.deployment.skaha.headlessPriorityClass }}
-        - name: skaha.headlesspriortyclass
+        - name: SKAHA_HEADLESS_PRIORITY_CLASS
           value: "{{ . }}"
+        {{- end }}
+        {{- with .Values.deployment.skaha.sessions.kueue }}
+        {{- range $queueConfigKey, $queueConfig := . }}
+        - name: SKAHA_QUEUE_{{ $queueConfigKey | upper }}_NAME
+          value: "{{ $queueConfig.queueName | required (printf "Missing .Values.deployment.skaha.sessions.kueue.%s.queueName" $queueConfigKey) }}"
+        - name: SKAHA_QUEUE_{{ $queueConfigKey | upper }}_PRIORITY_CLASS
+          value: "{{ $queueConfig.priorityClass | required (printf "Missing .Values.deployment.skaha.sessions.kueue.%s.priorityClass" $queueConfigKey) }}"
+        {{- end }}
         {{- end }}
         - name: skaha.adminsgroup
           value: "{{ .Values.deployment.skaha.adminsGroup }}"
         - name: skaha.posixmapper.resourceid
           value: "{{ .Values.deployment.skaha.posixMapperResourceID }}"
         - name: REDIS_HOST
-          value: "{{ .Release.Name }}-redis-master.{{ .Values.skaha.namespace }}.svc.{{ .Values.kubernetesClusterDomain }}"
+          value: "{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.{{ .Values.kubernetesClusterDomain }}"
         - name: REDIS_PORT
           value: "6379"
         {{- with .Values.deployment.skaha.extraEnv }}
@@ -85,7 +93,7 @@ spec:
         {{- end }}
         image: {{ .Values.deployment.skaha.image }}
         imagePullPolicy: {{ .Values.deployment.skaha.imagePullPolicy }}
-        name: skaha-tomcat
+        name: {{ .Release.Name }}-skaha-tomcat
         resources:
           requests:
             memory: {{ .Values.deployment.skaha.resources.requests.memory }}
@@ -122,15 +130,19 @@ spec:
             - {{ $extraHost.hostname }}
 {{- end }}
 {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       priorityClassName: {{ .Values.deployment.skaha.priorityClassName }}
       serviceAccountName: {{ .Values.deployment.skaha.serviceAccountName }}
       volumes:
       - name: config-volume
         configMap:
-          name: skaha-config
+          name: {{ .Release.Name }}-skaha-config
       - name: add-user-config
         configMap:
-          name: add-user-config
+          name: {{ .Release.Name }}-add-user-config
       - name: cavern-volume
         {{- toYaml .Values.storage.service.spec | nindent 8 }}
       {{- with .Values.deployment.skaha.extraVolumes }}

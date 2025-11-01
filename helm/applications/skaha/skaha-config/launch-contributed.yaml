@@ -55,7 +55,7 @@ spec:
         - name: OMP_NUM_THREADS
           value: "${software.requests.cores}"
         image: ${software.imageid}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: {{ .Values.deployment.skaha.sessions.imagePullPolicy | required "deployment.skaha.sessions.imagePullPolicy must be set." }}
         resources:
           requests:
             memory: "${software.requests.ram}"
@@ -64,7 +64,6 @@ spec:
           limits:
             memory: "${software.limits.ram}"
             cpu: "${software.limits.cores}"
-            ${software.limits.gpus}
             ephemeral-storage: "{{ .Values.deployment.skaha.sessions.maxEphemeralStorage }}"
         ports:
         - containerPort: 5000
@@ -84,6 +83,10 @@ spec:
           capabilities:
             drop:
               - ALL
+      {{- with .Values.deployment.skaha.sessions.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
       - name: etc-group
         emptyDir: { }
@@ -91,6 +94,6 @@ spec:
         emptyDir: { }
       - name: init-users-groups
         configMap:
-          name: init-users-groups-config
+          name: {{ .Release.Name }}-init-users-groups-config
           defaultMode: 0777
       {{ template "skaha.session.commonVolumes" . }}

@@ -4,6 +4,9 @@ apiVersion: kueue.x-k8s.io/v1beta1
 kind: ResourceFlavor
 metadata:
   name: default
+spec:
+  nodeLabels:
+    skaha.opencadc.org/node-type: worker-node
 ---
 # ClusterQueue
 apiVersion: kueue.x-k8s.io/v1beta1
@@ -19,18 +22,29 @@ spec:
   queueingStrategy: BestEffortFIFO
   cohort: skaha-cohort
   resourceGroups:
-    - coveredResources: ["cpu", "memory"]
+    - coveredResources: ["cpu", "memory", "ephemeral-storage"]
       flavors:
         - name: "default"
+          # Cluster Hardware Configuration
+          # Does not include
+          #   - skaha.opencadc.org/node-type=service-node (p-nodes)
+          #   - node-role.kubernetes.io/control-plane
+          # Compute Nodes: 2 x [16 cores, 59Gi memory, 500Gi ephemeral-storage]
+          # nominalQuota = count * size
+          # borrowing / lending = size * 40%
           resources:
             - name: "cpu"
-              nominalQuota:   60 #100% of keel-dev
-              borrowingLimit: 12
-              lendingLimit:   12
+              nominalQuota:   "28.8"
+              borrowingLimit: "6"
+              lendingLimit:   "6"
             - name: "memory"
-              nominalQuota:   174Gi #100% of keel-dev
-              borrowingLimit: 32Gi
-              lendingLimit:   32Gi
+              nominalQuota:   "94Gi"
+              borrowingLimit: "32Gi"
+              lendingLimit:   "32Gi"
+            - name: "ephemeral-storage"
+              nominalQuota:   "700Gi"
+              borrowingLimit: "200Gi"
+              lendingLimit:   "200Gi"
   preemption:
     reclaimWithinCohort: LowerPriority
     borrowWithinCohort:
@@ -38,3 +52,27 @@ spec:
       maxPriorityThreshold: 10000
     withinClusterQueue: LowerPriority
   stopPolicy: None
+---
+# WorkloadPriorityClass
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: low
+value: 10000
+description: "Low Priority"
+---
+# WorkloadPriorityClass
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: medium
+value: 100000
+description: "Medium Priority"
+---
+# WorkloadPriorityClass
+apiVersion: kueue.x-k8s.io/v1beta1
+kind: WorkloadPriorityClass
+metadata:
+  name: high
+value: 1000000
+description: "High Priority"

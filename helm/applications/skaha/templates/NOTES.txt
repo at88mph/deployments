@@ -1,0 +1,33 @@
+{{- /*
+Post-install notes for Skaha with optional Kueue integration.
+*/ -}}
+
+Skaha release: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+Skaha workload namespace: {{ .Values.skahaWorkload.namespace | default "skaha-workload" }}
+
+Kueue:
+{{- if .Values.deployment.skaha.sessions.kueue }}
+  - It's expected that the Kueue CRDs and controllers to be present if you set session queues.
+{{- $queues := (default dict .Values.deployment.skaha.sessions.kueue) }}
+{{- if $queues }}
+{{- range $type, $cfg := $queues }}
+  - {{ $cfg.queueName | default (printf "%s-%s" $.Release.Name $type) }} (type: {{ $type }})
+{{- end }}
+{{- else }}
+  - none configured; Jobs will NOT run with Kueue unless annotated by Skaha.
+{{- end }}
+{{- else }}
+  - Not configured
+{{- end }}
+
+Quick checks:
+  - kubectl get deployment {{ .Release.Name }}-skaha-tomcat -n {{ .Release.Namespace }}
+  - kubectl get clusterqueues 2>/dev/null || true
+  - kubectl get localqueues -n {{ .Values.skahaWorkload.namespace }} 2>/dev/null || true
+
+If user Jobs remain Pending:
+- Ensure LocalQueue exists in {{ .Values.skahaWorkload.namespace }} and references your configured ClusterQueue.
+- Verify ClusterQueue quotas are sufficient.
+- Confirm priority classes referenced by sessions exist or are created.
