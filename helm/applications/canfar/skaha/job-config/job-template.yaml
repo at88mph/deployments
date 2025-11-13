@@ -1,0 +1,184 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  labels:
+    canfar-net-sessionID: "${skaha.sessionid}"
+    canfar-net-sessionName: "${skaha.sessionname}"
+    canfar-net-sessionType: "${skaha.sessiontype}"
+    canfar-net-userid: "${skaha.userid}"
+  name: "${skaha.jobname}"
+spec:
+  parallelism: 1
+  completions: 1
+  activeDeadlineSeconds: ${skaha.sessionexpiry}
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        canfar-net-sessionID: "${skaha.sessionid}"
+        canfar-net-sessionName: "${skaha.sessionname}"
+        canfar-net-sessionType: "${skaha.sessiontype}"
+        canfar-net-userid: "${skaha.userid}"
+        job-name: "${skaha.jobname}"
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      restartPolicy: OnFailure
+{{- with .Values.sessions.nodeAffinity }}
+      affinity:
+        nodeAffinity:
+{{ . | toYaml | indent 10 }}
+{{- with .Values.sessions.securityContext }}
+      securityContext:
+{{ . | toYaml | indent 10 }}
+      priorityClassName: uber-user-preempt-medium
+      hostname: "${software.hostname}"
+      initContainers:
+      - name: backup-original-passwd-groups
+        image: ${software.imageid}
+        command: ["/bin/sh", "-c", "cp /etc/passwd /etc-passwd/passwd-orig && cp /etc/group /etc-group/group-orig"]
+        volumeMounts:
+        - mountPath: "/etc-passwd"
+          name: etc-passwd
+        - mountPath: "/etc-group"
+          name: etc-group
+        securityContext:
+          privileged: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+      - name: init-users-groups
+        image: {{ $.Values.sessions.initContainerImage | default "redis:8.2.2-bookworm" }}
+        command: ["/init-users-groups/init-users-groups.sh"]
+        env:
+        - name: HOME
+          value: "${SKAHA_TLD}/home/${skaha.userid}"
+        - name: REDIS_URL
+          value: "redis://{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.{{ .Values.kubernetesClusterDomain }}:6379"
+        volumeMounts:
+        - mountPath: "/etc-passwd"
+          name: etc-passwd
+        - mountPath: "/etc-group"
+          name: etc-group
+        - mountPath: "/init-users-groups"
+          name: init-users-groups
+        securityContext:
+          privileged: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+{{- with .Values.extraHosts }}
+      hostAliases:
+{{- range $extraHost := . }}
+        - ip: {{ $extraHost.ip }}
+          hostnames:
+            - {{ $extraHost.hostname }}
+{{- end }}
+{{- end }}
+      containers:
+      - name: "${skaha.jobname}"
+        env: [] # TODO: refactor to use common env template
+        image: ${software.imageid}
+        command: ["/skaha-system/start-session.sh"]
+        args:
+          - "${skaha.startup.args}"
+        imagePullPolicy: {{ .Values.sessions.imagePullPolicy | required "sessions.imagePullPolicy must be set." }}
+        resources:
+          requests:
+            memory: "${software.requests.ram}"
+            cpu: "${software.requests.cores}"
+            ephemeral-storage: "{{ .Values.sessions.minEphemeralStorage }}"
+          limits:
+            memory: "${software.limits.ram}"
+            cpu: "${software.limits.cores}"
+            ephemeral-storage: "{{ .Values.sessions.maxEphemeralStorage }}"
+        ports: {} # TODO: change to job specific ports
+        # - containerPort: 8888
+        #   protocol: TCP
+        #   name: notebook-port
+        volumeMounts:
+        - mountPath: "/etc/passwd"
+          name: etc-passwd
+          subPath: passwd
+        - mountPath: "/etc/group"
+          name: etc-group
+          subPath: group
+        - mountPath: "/skaha-system"
+          name: startup-scripts
+        - mountPath: "${SKAHA_TLD}"
+          name: cavern-volume
+          subPath: "cavern"
+        - mountPath: "/scratch"
+          name: scratch-dir
+          subPath: "${skaha.sessionid}"
+      {{- with .Values.deployment.skaha.sessions.extraVolumes }}
+        {{- range . }}
+        - name: {{ .name }}
+          mountPath: {{ .volumeMount.mountPath }}
+          {{- if .volumeMount.subPath }}
+          subPath: {{ .volumeMount.subPath }}
+          {{- end }}
+          {{- if .volumeMount.readOnly }}
+          readOnly: {{ .volumeMount.readOnly }}
+          {{- end }}
+          {{- if .volumeMount.mountPropagation }}
+          mountPropagation: {{ .volumeMount.mountPropagation }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+        securityContext:
+          privileged: false
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+      {{- with .Values.sessions.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      - name: etc-group
+        emptyDir: { }
+      - name: etc-passwd
+        emptyDir: { }
+      - name: startup-scripts
+        configMap:
+          name: {{ .Release.Name }}-launch-scripts
+          defaultMode: 0777
+      - name: init-users-groups
+        configMap:
+          name: {{ .Release.Name }}-init-users-groups-config
+          defaultMode: 0777
+      {{- with .Values.sessions.extraVolumes }}
+      {{- range . }}
+      - name: {{ .name }}
+        {{- if eq .volume.type "PVC" }}
+        persistentVolumeClaim:
+          claimName: {{ .volume.name }}
+        {{- else if eq .volume.type "HOST_PATH" }}
+        hostPath:
+          path: {{ .volume.hostPath }}
+          type: {{ .volume.hostPathType }}
+        {{- else if eq .volume.type "CONFIG_MAP" }}
+        configMap:
+          name: {{ .volume.name }}
+          {{- if .volumeMount.defaultMode }}
+          defaultMode: {{ .volume.defaultMode }}
+          {{- end }}
+        {{- else if eq .volume.type "SECRET" }}
+        secret:
+          secretName: {{ .volume.name }}
+          {{- if .volumeMount.defaultMode }}
+          defaultMode: {{ .volume.defaultMode }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+      - name: cavern-volume
+        persistentVolumeClaim:
+          claimName: {{ .Values.sessions.storageSpec | required "The storage spec for skaha sessions (deployment.skaha.sessions.storageSpec) must be set."  }}
+      - name: scratch-dir
+        emptyDir: {}

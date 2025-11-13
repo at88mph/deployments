@@ -11,10 +11,12 @@ global:
   imagePullSecrets: []
   imagePullPolicy: IfNotPresent
 
-  # Set the Registry URL pointing to the desired registry containing IVOA compliant services to lookup.
+  # Array of Registry URLs pointing to the desired registry containing IVOA compliant services to lookup.  An array is used to ensure
+  # some resiliency if one of the registries is down or unreachable.
   # Example:
-  #   registryURL: https://example.org/reg
-  registryURL: ""
+  #   registryURLs:
+  #     - https://example.org/reg
+  registryURLs: []
 
   # URI or URL of the OIDC (IAM) server.  Used to validate incoming tokens.
   # Example:
@@ -89,7 +91,7 @@ image:
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "1.0.3"
+  tag: "1.1.2"
 
 # Skaha configuration settings.
 
@@ -283,6 +285,31 @@ sessions:
   # or to control how and where User Session Pods are scheduled.  This can be potentially dangerous unless you know what you are doing.
   # See https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity
   # nodeAffinity: {}
+
+  # Set the YAML that will go into the "affinity.nodeAffinity" stanza for Pod Spec in User Sessions.  This can be used to enable GPU scheduling, for example, 
+  # or to control how and where User Session Pods are scheduled.  This can be potentially dangerous unless you know what you are doing.
+  # See https://kubernetes.io/docs/tasks/configure-pod-container/assign-pods-nodes-using-node-affinity
+  # nodeAffinity: {}
+
+  # YAML to pass to a LimitRange object called "{{ .Release.Name }}-session-limit-range" in the workload Namespace to define the resource limits.
+  # These limits will be applied to Container objects (User Sessions).  The max values represent the maximum resources a User Session can request that will fit onto a single Node.
+  # **NOTE**: The min clause is ignored due to hard-coded resources for Desktop and Firefly sessions.  The `defaultRequest` is used instead for these session types.
+  # See https://kubernetes.io/docs/concepts/policy/limit-range/
+  #
+  # Example:
+  # limitRangeSpec:
+  #   max:
+  #     memory: "96Gi"
+  #     cpu: "12"
+  #     "nvidia.com/gpu": "4"
+  #   default:  # actually refers to default limit
+  #     memory: "32Gi"
+  #     cpu: "8"
+  #     "nvidia.com/gpu": "1"
+  #   defaultRequest:
+  #     memory: "4Gi"
+  #     cpu: "1"
+  limitRangeSpec: {}
 
   # Storage setings to be passed into the User Session Kubernetes Job spec.
   userStorage:

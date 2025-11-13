@@ -26,7 +26,18 @@ spec:
       automountServiceAccountToken: false
       enableServiceLinks: false
       restartPolicy: OnFailure
-      {{ template "skaha.job.nodeAffinity" . }}
+      {{- with .Values.sessions.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sessions.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.sessions.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       securityContext:
         {{ template "skaha.job.securityContext" . }}
       priorityClassName: uber-user-preempt-medium
